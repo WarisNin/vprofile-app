@@ -88,11 +88,16 @@ jobs:
       - name: Get Kube config file
         run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER }}
 
-      - name: Print config file #remove after complete
-        run: cat ~/.kube/config
+      # - name: Print config file #remove after complete
+      #   run: cat ~/.kube/config
 
-      - name: Login to ECR
-        run: kubectl create secret docker-registry regcred --docker-server=${{ secrets.REGISTRY }} --docker-username=AWS  --docker-password=$(aws ecr get-login-password) 
+      - name: First login to ECR
+        id: first_login 
+        run: kubectl create secret docker-registry regcred --docker-server=${{ secrets.REGISTRY }} --docker-username=AWS  --docker-password=$(aws ecr get-login-password)
+        
+      - name: Credential is created in ECR
+        if: steps.first_login.outcome == 'failure'
+        run: kubectl get secret regcred --docker-server=${{ secrets.REGISTRY }} --docker-username=AWS  --docker-password=$(aws ecr get-login-password)
 
       - name: Deploy Helm chart to AWS EKS Cluster
         uses: bitovi/github-actions-deploy-eks-helm@v1.2.10
