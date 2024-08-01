@@ -94,10 +94,13 @@ jobs:
       - name: First login to ECR
         id: first_login 
         run: kubectl create secret docker-registry regcred --docker-server=${{ secrets.REGISTRY }} --docker-username=AWS  --docker-password=$(aws ecr get-login-password)
+        continue-on-error: true
+        
         
       - name: Credential is created in ECR
-        if: steps.first_login.outcome == 'failure'
+        # if: steps.first_login.outcome == 'failure'
         run: kubectl get secret regcred --docker-server=${{ secrets.REGISTRY }} --docker-username=AWS  --docker-password=$(aws ecr get-login-password)
+        
 
       - name: Deploy Helm chart to AWS EKS Cluster
         uses: bitovi/github-actions-deploy-eks-helm@v1.2.10
